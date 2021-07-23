@@ -1,0 +1,19 @@
+{
+  "name": "image_converter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "exifr": "^7.1.2",
+    "express": "^4.17.1",
+    "ffmetadata": "^1.7.0",
+    "heic-convert": "^1.2.4",
+    "piexifjs": "^1.0.4",
+    "request": "^2.88.2"
+  }
+}
