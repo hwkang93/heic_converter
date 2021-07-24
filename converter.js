@@ -4,6 +4,21 @@ const util = require('util');
 const piexif = require('piexifjs')
 const exifr = require('exifr');
 
+//정의된 확장자만 리스트에 추가해야 함
+const allowedExtensions = [];
+
+fs.readdir(folderPath, (error, files) => {
+    if(error) {
+        console.error(error);
+        return;
+    }
+
+    files.forEach(file => {
+        console.log(file);
+    })
+});
+
+/*
 (
     async () => {
         const filePath = 'C:/Users/KHW-IPC/Pictures/image/test3.heic';
@@ -52,7 +67,7 @@ const exifr = require('exifr');
         
     }
 )();
-
+*/
 
 function degToDmsRational(degFloat) {
     var minFloat = degFloat % 1 * 60
