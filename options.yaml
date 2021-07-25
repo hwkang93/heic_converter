@@ -1,0 +1,11 @@
+extension:
+  # .extension / list
+  inputs: 
+    - .heic
+    - .png
+  # .extension / string
+  output: .jpeg
+
+path:
+  input: D:/
+  output : D:/

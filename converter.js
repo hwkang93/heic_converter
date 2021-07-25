@@ -3,20 +3,47 @@ const fs = require('fs');
 const util = require('util');
 const piexif = require('piexifjs')
 const exifr = require('exifr');
+const yaml = require('js-yaml');
 
-//정의된 확장자만 리스트에 추가해야 함
-const allowedExtensions = [];
-
-fs.readdir(folderPath, (error, files) => {
-    if(error) {
-        console.error(error);
-        return;
+const readOptions = () => {
+    try {
+        const file = fs.readFileSync('./options.yaml', 'utf-8');
+        const doc = yaml.load(file);
+        
+        return {
+            'extension' : doc.extension,
+            'path' : doc.path
+        };
+    } catch(e) {
+        console.error(e);
     }
+}
 
-    files.forEach(file => {
-        console.log(file);
+const hasExtensions = file => {
+    let result = false;
+    allowedExtensions.forEach(extension => {
+        if(file.includes(extension)) {
+            result = true;
+        }
     })
-});
+
+    return result;
+}
+
+
+const options = readOptions();
+const allowedExtensions = options.extension.inputs;
+const folderPath = options.path.input;
+
+(
+    async() => {
+        const files = await util.promisify(fs.readdir)(folderPath)
+            .then(files => files.filter(hasExtensions))
+            .catch(error => console.error(error));
+    
+        console.log(files);
+    }
+)()
 
 /*
 (
