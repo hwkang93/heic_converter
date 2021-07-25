@@ -7,5 +7,5 @@ extension:
   output: .jpeg
 
 path:
-  input: D:/
-  output : D:/
+  input: D:/study/image/
+  output : D:/study/output/

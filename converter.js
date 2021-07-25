@@ -30,71 +30,83 @@ const hasExtensions = file => {
     return result;
 }
 
-
 const options = readOptions();
 const allowedExtensions = options.extension.inputs;
+const convertedExtension = options.extension.output;
 const folderPath = options.path.input;
 
 (
-    async() => {
+    async () => {
+
+        console.log('******** FILE CONVERTER START ********')
+        console.log('convert option : ')
+        console.log('  input extensions : ')
+        console.log(allowedExtensions)
+        console.log(`  output extension : ${convertedExtension}`)
+
         const files = await util.promisify(fs.readdir)(folderPath)
             .then(files => files.filter(hasExtensions))
             .catch(error => console.error(error));
-    
-        console.log(files);
-    }
-)()
+        
+        console.log(`conver files length : ${files.length}`);
 
-/*
-(
-    async () => {
-        const filePath = 'C:/Users/KHW-IPC/Pictures/image/test3.heic';
-        const extension = 'JPEG'
-        try {
-            const date = await exifr.parse(filePath)
-                .then(output => new Date(output.DateTimeOriginal))
-                .catch(err => undefined);
-
-            const location = await exifr.gps(filePath);
+        let success = 0;
+        for(let i=0; i<files.length; i++) {
+            const filePath = folderPath + files[i];
+            console.log(`${filePath} convert start.`)
+            let outputPath = filePath;
             
-            const inputBuffer = await util.promisify(fs.readFile)(filePath);
-            const outputBuffer = await convert({
-                buffer: inputBuffer,
-                format: extension,
-                quality: 1
-            })
-
-            const outputPath = `${filePath.split('.')[0]}.${extension}`;
             console.log('outputPath : ' + outputPath)
 
-            fs.writeFileSync(outputPath, outputBuffer)
-            
-            const data = fs.readFileSync(outputPath).toString('binary');
-            const exifObj = piexif.load(data);
-            if(date) {
-                exifObj.Exif[piexif.ExifIFD.DateTimeDigitized] = dateToString(date);
-            }
+            try {
+                const date = await exifr.parse(filePath)
+                    .then(output => new Date(output.DateTimeOriginal))
+                    .catch(err => undefined);
+    
+                const location = await exifr.gps(filePath);
 
-            if(location) {
-                exifObj.GPS[piexif.GPSIFD.GPSLatitude] =  degToDmsRational(location.latitude);
-                exifObj.GPS[piexif.GPSIFD.GPSLatitudeRef] =  "N";
-                exifObj.GPS[piexif.GPSIFD.GPSLongitude] =  degToDmsRational(location.longitude);
-                exifObj.GPS[piexif.GPSIFD.GPSLongitudeRef] =  "W";
-            }
-            
-            const exifByte = piexif.dump(exifObj);
-            const newData = piexif.insert(exifByte, data);
-            const newJpeg = Buffer.from(newData, "binary");
-            fs.writeFileSync(`${filePath.split('.')[0]}_convert.${extension}`, newJpeg);
-
-        } catch(err) {
-            console.error('error occured');
-            console.error(err)
-        }
+                if(filePath.includes('.heic')) {
+                    const inputBuffer = await util.promisify(fs.readFile)(filePath);
+                    const outputBuffer = await convert({
+                        buffer: inputBuffer,
+                        format: 'JPEG',
+                        quality: 1
+                    })
         
+                    fs.writeFileSync(outputPath, outputBuffer);
+                    outputPath = `${filePath.split('.')[0]}${convertedExtension}`;
+                }
+                
+                const data = fs.readFileSync(outputPath).toString('binary');
+                const exifObj = piexif.load(data);
+                if(date) {
+                    exifObj.Exif[piexif.ExifIFD.DateTimeDigitized] = dateToString(date);
+                }
+    
+                if(location) {
+                    exifObj.GPS[piexif.GPSIFD.GPSLatitude] =  degToDmsRational(location.latitude);
+                    exifObj.GPS[piexif.GPSIFD.GPSLatitudeRef] =  "N";
+                    exifObj.GPS[piexif.GPSIFD.GPSLongitude] =  degToDmsRational(location.longitude);
+                    exifObj.GPS[piexif.GPSIFD.GPSLongitudeRef] =  "W";
+                }
+                
+                const exifByte = piexif.dump(exifObj);
+                const newData = piexif.insert(exifByte, data);
+                const newJpeg = Buffer.from(newData, "binary");
+                fs.writeFileSync(`${filePath.split('.')[0]}_convert${extension}`, newJpeg);
+
+                success = success +1;
+            } catch(err) {
+                console.error('error occured');
+                console.error(err)
+            }
+        }
+
+
+        console.log('******** FILE CONVERTER FINISHED ********')
+        console.log(`success : ${success}/${files.length}`)
     }
 )();
-*/
 
 function degToDmsRational(degFloat) {
     var minFloat = degFloat % 1 * 60
