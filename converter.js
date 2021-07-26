@@ -11,7 +11,6 @@ const readOptions = () => {
         const doc = yaml.load(file);
         
         return {
-            'extension' : doc.extension,
             'path' : doc.path
         };
     } catch(e) {
@@ -19,63 +18,48 @@ const readOptions = () => {
     }
 }
 
-const hasExtensions = file => {
-    let result = false;
-    allowedExtensions.forEach(extension => {
-        if(file.includes(extension)) {
-            result = true;
-        }
-    })
-
-    return result;
+const isHeic = file => {
+    const dotLoc = file.lastIndexOf('.');
+    const extension = file.substring(dotLoc, file.length).toLowerCase();
+    
+    return extension == '.heic';
 }
 
 const options = readOptions();
-const allowedExtensions = options.extension.inputs;
-const convertedExtension = options.extension.output;
 const folderPath = options.path.input;
 
 (
     async () => {
-
         console.log('******** FILE CONVERTER START ********')
-        console.log('convert option : ')
-        console.log('  input extensions : ')
-        console.log(allowedExtensions)
-        console.log(`  output extension : ${convertedExtension}`)
 
         const files = await util.promisify(fs.readdir)(folderPath)
-            .then(files => files.filter(hasExtensions))
+            .then(files => files.filter(isHeic))
             .catch(error => console.error(error));
         
-        console.log(`conver files length : ${files.length}`);
+        console.log(`   >>  Convert files length : ${files.length}`);
 
         let success = 0;
         for(let i=0; i<files.length; i++) {
             const filePath = folderPath + files[i];
-            console.log(`${filePath} convert start.`)
-            let outputPath = filePath;
+            console.log(`   >>  ${filePath} convert start.`)
             
-            console.log('outputPath : ' + outputPath)
-
             try {
                 const date = await exifr.parse(filePath)
                     .then(output => new Date(output.DateTimeOriginal))
                     .catch(err => undefined);
     
                 const location = await exifr.gps(filePath);
-
-                if(filePath.includes('.heic')) {
-                    const inputBuffer = await util.promisify(fs.readFile)(filePath);
-                    const outputBuffer = await convert({
-                        buffer: inputBuffer,
-                        format: 'JPEG',
-                        quality: 1
-                    })
-        
-                    fs.writeFileSync(outputPath, outputBuffer);
-                    outputPath = `${filePath.split('.')[0]}${convertedExtension}`;
-                }
+                console.log('filePath : ' + filePath);
+                const inputBuffer = await util.promisify(fs.readFile)(filePath);
+                const outputBuffer = await convert({
+                    buffer: inputBuffer,
+                    format: 'JPEG',
+                    quality: 1
+                })
+    
+                
+                const outputPath = `${filePath.split('.')[0]}.JPEG`;
+                fs.writeFileSync(outputPath, outputBuffer);
                 
                 const data = fs.readFileSync(outputPath).toString('binary');
                 const exifObj = piexif.load(data);
@@ -93,7 +77,7 @@ const folderPath = options.path.input;
                 const exifByte = piexif.dump(exifObj);
                 const newData = piexif.insert(exifByte, data);
                 const newJpeg = Buffer.from(newData, "binary");
-                fs.writeFileSync(`${filePath.split('.')[0]}_convert${extension}`, newJpeg);
+                fs.writeFileSync(`${filePath.split('.')[0]}_convert.JPEG`, newJpeg);
 
                 success = success +1;
             } catch(err) {
@@ -107,6 +91,7 @@ const folderPath = options.path.input;
         console.log(`success : ${success}/${files.length}`)
     }
 )();
+
 
 function degToDmsRational(degFloat) {
     var minFloat = degFloat % 1 * 60
@@ -132,3 +117,4 @@ function dateToString(date) {
 
     return `${year}:${month}:${day} ${hour}:${minute}:${second}`;
 }
+
