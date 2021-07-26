@@ -1,11 +1,3 @@
-extension:
-  # .extension / list
-  inputs: 
-    - .heic
-    - .png
-  # .extension / string
-  output: .jpeg
-
 path:
-  input: D:/study/image/
-  output : D:/study/output/
+  input: C:/Users/KHW-IPC/Pictures/image/
+  output : C:/Users/KHW-IPC/Pictures/temp/
