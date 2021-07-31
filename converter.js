@@ -27,6 +27,7 @@ const isHeic = file => {
 
 const options = readOptions();
 const folderPath = options.path.input;
+const outputExtension = 'JPEG';
 
 (
     async () => {
@@ -41,24 +42,26 @@ const folderPath = options.path.input;
         let success = 0;
         for(let i=0; i<files.length; i++) {
             const filePath = folderPath + files[i];
-            console.log(`   >>  ${filePath} convert start.`)
+            const outputPath = options.path.output + files[i].split('.')[0] + '.' + outputExtension;
+
+            console.log(`${files[i]} convert start.`)
+            console.log(`   >> input file path : ${filePath}`);
+            console.log(`   >> output file path : ${outputPath}`)
             
+
             try {
                 const date = await exifr.parse(filePath)
                     .then(output => new Date(output.DateTimeOriginal))
                     .catch(err => undefined);
     
                 const location = await exifr.gps(filePath);
-                console.log('filePath : ' + filePath);
                 const inputBuffer = await util.promisify(fs.readFile)(filePath);
                 const outputBuffer = await convert({
                     buffer: inputBuffer,
-                    format: 'JPEG',
+                    format: outputExtension,
                     quality: 1
                 })
     
-                
-                const outputPath = `${filePath.split('.')[0]}.JPEG`;
                 fs.writeFileSync(outputPath, outputBuffer);
                 
                 const data = fs.readFileSync(outputPath).toString('binary');
@@ -77,18 +80,20 @@ const folderPath = options.path.input;
                 const exifByte = piexif.dump(exifObj);
                 const newData = piexif.insert(exifByte, data);
                 const newJpeg = Buffer.from(newData, "binary");
-                fs.writeFileSync(`${filePath.split('.')[0]}_convert.JPEG`, newJpeg);
-
+                fs.writeFileSync(outputPath, newJpeg);
+                
                 success = success +1;
+                
+                console.log(`${files[i]} convert finished. ${success} / ${files.length}`);
             } catch(err) {
                 console.error('error occured');
                 console.error(err)
             }
+
         }
 
-
-        console.log('******** FILE CONVERTER FINISHED ********')
-        console.log(`success : ${success}/${files.length}`)
+        console.log('******** FILE CONVERTER FINISHED ********');
+        console.log(`success : ${success}/${files.length}`);
     }
 )();
 
