@@ -48,7 +48,6 @@ const outputExtension = 'JPEG';
             console.log(`   >> input file path : ${filePath}`);
             console.log(`   >> output file path : ${outputPath}`)
             
-
             try {
                 const date = await exifr.parse(filePath)
                     .then(output => new Date(output.DateTimeOriginal))
@@ -84,7 +83,8 @@ const outputExtension = 'JPEG';
                 
                 success = success +1;
                 
-                console.log(`${files[i]} convert finished. ${success} / ${files.length}`);
+                console.log(`${files[i]} convert finished. [ ${success} / ${files.length} ]`);
+                
             } catch(err) {
                 console.error('error occured');
                 console.error(err)
